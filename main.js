@@ -1,22 +1,21 @@
 'use strict';
-import api from './api.js';
+
 import store from './store.js';
+import api from './api.js';
 
-
-//Template
+//template functions
 
 function templateLanding(){
-  const bookmarkList = handleBookmarkList(store.bookmarks);
+  const bookmarkList = handleBookmarkList(store.filteredBookmarks);
   return `
-
-  <h1>My Bookmarks</h1>    
+  <h1>My Bookmarks</h1> 
+    <label for="dropdown"> Show by rating </label> 
     <select id="dropdown">
-      <option value=0 selected>Show by rating</option>
-      <option value=0>All</option>
-      <option value=2> &#9733;	&#9733;  and above</option>
-      <option value=3> &#9733; &#9733; &#9733;  and above</option>
-      <option value=4> &#9733; &#9733; &#9733; &#9733;  and above</option>
-      <option value=5> &#9733; &#9733; &#9733; &#9733; &#9733;  only</option>
+      <option value=0 ${store.filter == 0 ? 'selected': ''}>All</option>
+      <option value=2 ${store.filter == 2 ? 'selected': ''}> &#9733;	&#9733;  and above</option>
+      <option value=3 ${store.filter == 3 ? 'selected': ''}> &#9733; &#9733; &#9733;  and above</option>
+      <option value=4 ${store.filter == 4 ? 'selected': ''}> &#9733; &#9733; &#9733; &#9733;  and above</option>
+      <option value=5 ${store.filter == 5 ? 'selected': ''}> &#9733; &#9733; &#9733; &#9733; &#9733;  only</option>
     </select>
     ${bookmarkList}
     <form id="add-start" action="#">
@@ -24,7 +23,6 @@ function templateLanding(){
     </form>
     <div class="error-container"> </div>
   `;
-
 };
 
 function templateAdd(){
@@ -44,7 +42,6 @@ function templateAdd(){
       <button name="cancel-add" id="cancel-add-button"> Cancel </button>
       <input type="submit" id="add-submit" value="Submit">
     </form>
-
   `;
 };
 
@@ -52,7 +49,7 @@ function templateBookmark(bookmark){
  const stars = translateRating(bookmark.rating);
   if(bookmark.expanded === false) {
     return `
-  <form class="bookmark-container" data-id="${bookmark.id}">
+  <form class="bookmark-container ${bookmark.rating}" data-id="${bookmark.id}">
   <div class="bookmark-thumbnail">  
     <p>${bookmark.title}
       <span class="star-rating">${stars}</span>
@@ -62,11 +59,9 @@ function templateBookmark(bookmark){
   </form>
   `;
  }
-
-
   else if(bookmark.expanded === true) {
     return `
-  <form class="expanded-container" data-id="${bookmark.id}">
+  <form class="expanded-container ${bookmark.rating}" data-id="${bookmark.id}">
     <h2>${bookmark.title}</h2>
     <span class="star-rating"> ${stars} </span>
     <h3>Visit:</h3>
@@ -100,20 +95,27 @@ return `
 `;
 };
 
-//Renders for functions
+//renders 
 
 function render() {
+  let bookmarks = [...store.bookmarks];
+  if(store.filter > 0) {
+    store.filteredBookmarks = bookmarks.filter(bookmark => bookmark.rating >= store.filter);
+    console.log('if is working');
+  }
+  else{
+    store.filteredBookmarks = store.bookmarks;
+  } 
   $('main').html(templateLanding());
   if(store.addMode === true){
     $('main').append(templateAdd());
   }
-  let bookmarks = [...store.bookmarks];
-  if(store.filter > 0) {
-    bookmarks = bookmarks.filter(bookmark => bookmark.rating >= store.filter);
-  }
+  
+
+  console.log(store.filter);
 };
 
-//Handlers
+//handlers
 
 function handleBookmarkList(bookmarks){
   return bookmarks.map(bookmark => (templateBookmark(bookmark))).join('');
